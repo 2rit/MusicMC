@@ -1,0 +1,2405 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MC Music Player + Live Lyrics — Add-on Studio</title>
+<style>
+:root {
+  --bg-deep: #080d14;
+  --bg-main: #0d1520;
+  --surface: #131e2c;
+  --surface-2: #19283a;
+  --surface-3: #21344b;
+  --border: #2a4059;
+  --border-glow: rgba(56, 189, 248, 0.42);
+  --ink: #eaf2fa;
+  --ink-dim: #94a9c0;
+  --ink-muted: #647b94;
+  --cyan: #38bdf8;
+  --cyan-bright: #67e8f9;
+  --emerald: #22c55e;
+  --emerald-bright: #4ade80;
+  --amber: #f59e0b;
+  --danger: #ef4444;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --glow: 0 0 24px rgba(56, 189, 248, 0.18);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Thai", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  background:
+    radial-gradient(900px 420px at 50% -80px, rgba(56, 189, 248, 0.16), transparent 70%),
+    radial-gradient(650px 360px at 90% 10%, rgba(34, 197, 94, 0.08), transparent 70%),
+    linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-main) 100%);
+  padding: 20px 14px 48px;
+}
+
+.w {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* ====== REDESIGNED FROST-RUNE TOP HEADER ====== */
+.hero-header {
+  position: relative;
+  background: linear-gradient(145deg, #132030 0%, #0d1722 60%, #101d2b 100%);
+  border: 1px solid var(--border-glow);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow), var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 24px;
+  align-items: center;
+  overflow: hidden;
+}
+
+.hero-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(rgba(103, 232, 249, 0.09) 1px, transparent 1px);
+  background-size: 18px 18px;
+  pointer-events: none;
+  mask-image: linear-gradient(120deg, rgba(0,0,0,0.7), transparent 75%);
+  -webkit-mask-image: linear-gradient(120deg, rgba(0,0,0,0.7), transparent 75%);
+}
+
+.hero-info {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(103, 232, 249, 0.3);
+  color: var(--cyan-bright);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+
+.hero-badge .rune-dot {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-shadow: 0 0 8px var(--cyan);
+}
+
+.hero-info h1 {
+  margin: 0 0 8px;
+  font-size: clamp(22px, 3vw, 28px);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  text-shadow: 0 2px 14px rgba(56, 189, 248, 0.25);
+}
+
+.hero-info h1 span {
+  background: linear-gradient(90deg, #67e8f9, #38bdf8, #4ade80);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-sub {
+  margin: 0 0 18px;
+  color: var(--ink-dim);
+  font-size: 13.5px;
+}
+
+.theme-switch-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.theme-switch-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-dim);
+}
+
+.theme-pills {
+  display: inline-flex;
+  background: rgba(8, 13, 20, 0.75);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.theme-pill {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  min-height: 32px;
+}
+
+.theme-pill:hover {
+  color: var(--ink);
+}
+
+.theme-pill.active {
+  background: linear-gradient(180deg, #1d354d, #15283b);
+  color: var(--cyan-bright);
+  border-color: rgba(103, 232, 249, 0.4);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
+/* ====== LIVE IN-GAME HEADER PREVIEW WIDGET ====== */
+.mc-preview-stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mc-preview-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 390px;
+  margin-bottom: 7px;
+  font-size: 11.5px;
+  color: var(--ink-dim);
+}
+
+.mc-preview-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: var(--cyan-bright);
+  font-weight: 600;
+}
+
+/* Frost-Rune Minecraft Form Window */
+.mc-win {
+  width: 100%;
+  max-width: 390px;
+  font-family: var(--font-mono);
+  border-radius: 4px;
+  position: relative;
+  user-select: none;
+  transition: all 0.22s ease;
+}
+
+.mc-win.rune {
+  background: #17232f;
+  border: 2px solid #090f15;
+  box-shadow:
+    0 0 0 1px rgba(103, 232, 249, 0.45),
+    0 0 26px rgba(56, 189, 248, 0.28),
+    0 14px 28px rgba(0, 0, 0, 0.6);
+}
+
+.mc-win.classic {
+  background: #c6c6c6;
+  border: 2px solid #000;
+  box-shadow: inset 2px 2px 0 #fff, inset -2px -2px 0 #555, 0 12px 24px rgba(0, 0, 0, 0.5);
+}
+
+.mc-win-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  position: relative;
+}
+
+.mc-win.rune .mc-win-bar {
+  background: linear-gradient(180deg, #2b3c4d 0%, #1d2a37 100%);
+  border-bottom: 2px solid #0b1219;
+  box-shadow: inset 0 1px 0 rgba(148, 218, 255, 0.32);
+  color: #e6f4ff;
+}
+
+.mc-win.classic .mc-win-bar {
+  background: #c6c6c6;
+  border-bottom: 2px solid #555;
+  color: #3f3f3f;
+}
+
+.mc-rune-glyph {
+  font-size: 13px;
+  font-weight: 800;
+  color: #55ffff;
+  text-shadow: 0 0 8px #38bdf8;
+  width: 18px;
+  text-align: center;
+}
+
+.mc-win.classic .mc-rune-glyph {
+  visibility: hidden;
+}
+
+.mc-win-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.mc-win.rune .mc-win-title {
+  text-shadow: 1px 1px 0 #091017;
+}
+
+.mc-win-close {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+.mc-win.rune .mc-win-close {
+  background: #253545;
+  border: 1px solid #445d75;
+  color: #cbd5e1;
+}
+
+.mc-win.classic .mc-win-close {
+  color: #3f3f3f;
+}
+
+.mc-win-body {
+  margin: 6px 8px 8px;
+  padding: 12px 12px 10px;
+  position: relative;
+}
+
+.mc-win.rune .mc-win-body {
+  background: linear-gradient(180deg, #0d1620 0%, #121f2c 100%);
+  border: 2px solid #080e14;
+  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.16);
+}
+
+.mc-win.classic .mc-win-body {
+  background: rgba(16, 18, 22, 0.88);
+  border: 2px solid #373737;
+}
+
+.mc-card-head {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.mc-song-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #55ffff;
+  text-shadow: 2px 2px 0 #082330, 0 0 10px rgba(85, 255, 255, 0.3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mc-song-artist {
+  font-size: 12.5px;
+  color: #a8b5c4;
+  text-shadow: 1px 1px 0 #090d12;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mc-pbar-track {
+  position: relative;
+  width: 78%;
+  height: 9px;
+  margin: 11px auto 7px;
+  background: #1a2430;
+  border: 2px solid #090e14;
+  border-radius: 5px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.08);
+}
+
+.mc-pbar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  border-radius: 3px;
+}
+
+.mc-pbar-knob {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  transform: translate(-3px, -50%);
+  width: 11px;
+  height: 13px;
+  border-radius: 4px;
+  background: radial-gradient(circle at 40% 35%, #dcfce7 0%, #4ade80 55%, #16a34a 100%);
+  border: 1.5px solid #062110;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.85);
+}
+
+.mc-pbar-knob.paused {
+  background: radial-gradient(circle at 40% 35%, #fef3c7 0%, #fbbf24 55%, #d97706 100%);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.75);
+}
+
+.mc-status-line {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.mc-st-playing { color: #55ff55; font-weight: 700; }
+.mc-st-paused { color: #ffaa00; font-weight: 700; }
+.mc-st-time { color: #ffffff; }
+.mc-st-dur { color: #9aa7b6; }
+
+.mc-mock-btns {
+  display: grid;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.mc-mock-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.mc-disc {
+  width: 24px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #111 22%, #4ade80 24%, #4ade80 38%, #2a2f36 40%, #1c2026 70%);
+  border: 1.5px solid #0b0e12;
+  flex-shrink: 0;
+}
+
+.mc-disc.gold {
+  background: radial-gradient(circle, #fff 20%, #facc15 23%, #facc15 38%, #2a2f36 40%, #1c2026 70%);
+}
+
+.mc-disc.purple {
+  background: radial-gradient(circle, #e9d5ff 18%, #a855f7 22%, #a855f7 38%, #2a2f36 40%, #1c2026 70%);
+}
+
+.mc-stop-x {
+  width: 24px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  color: #ef4444;
+  font-weight: 900;
+  font-size: 15px;
+  line-height: 1;
+  text-shadow: 1px 1px 0 #450a0a, 0 0 6px rgba(239, 68, 68, 0.45);
+  flex-shrink: 0;
+}
+
+.mc-mock-btns {
+  max-height: 114px;
+  overflow: hidden;
+}
+
+.mc-mock-btn {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  padding: 5px 8px;
+  color: #1f242b;
+  font-weight: 700;
+  background: linear-gradient(180deg, #d6dbe0 0%, #c2c8cf 100%);
+  border: 2px solid #0c1117;
+  box-shadow: inset 1.5px 1.5px 0 #f2f5f8, inset -1.5px -1.5px 0 #7a838e;
+}
+
+.mc-win-foot {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8px 4px;
+  margin-top: -2px;
+}
+
+.mc-win.classic .mc-win-foot {
+  display: none;
+}
+
+/* ====== STUDIO CARDS & CONTROLS ====== */
+.p {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.p-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.p h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.p h2::before {
+  content: "";
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--cyan-bright), var(--emerald));
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.row > * {
+  flex: 1 1 160px;
+}
+
+button, .b {
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  cursor: pointer;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-align: center;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+  user-select: none;
+}
+
+button:hover:not(:disabled), .b:hover {
+  background: var(--surface-3);
+  border-color: rgba(103, 232, 249, 0.45);
+}
+
+button:active:not(:disabled), .b:active {
+  transform: translateY(1px);
+}
+
+button.btn-accent, .b.btn-accent {
+  background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.28);
+}
+
+button.btn-accent:hover:not(:disabled), .b.btn-accent:hover {
+  background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 100%);
+  border-color: #bae6fd;
+}
+
+button:disabled {
+  background: #121a24;
+  border-color: #1e2c3d;
+  color: var(--ink-muted);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.b input { display: none; }
+.b:has(input:disabled) {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+:focus-visible, .b:focus-within {
+  outline: 2px solid var(--cyan-bright);
+  outline-offset: 2px;
+}
+
+.field-label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-dim);
+}
+
+input[type=text], textarea, select {
+  font-family: inherit;
+  font-size: 13.5px;
+  width: 100%;
+  background: #0a111a;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type=text]:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.16);
+}
+
+textarea {
+  height: 180px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+/* ====== SONG LIST & DROPZONE ====== */
+#list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+#list.dragover .empty-slot {
+  border-color: var(--cyan-bright);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.empty-slot {
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  padding: 26px 16px;
+  text-align: center;
+  color: var(--ink-dim);
+  background: rgba(10, 17, 26, 0.5);
+  transition: all 0.15s ease;
+}
+
+.empty-slot strong {
+  display: block;
+  color: var(--ink);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0e1824;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  color: var(--ink);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.slot:hover {
+  border-color: #3b5878;
+}
+
+.slot.on {
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.14), rgba(19, 30, 44, 0.9));
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+}
+
+.slot .t {
+  flex: 1;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  padding: 4px 2px;
+}
+
+.slot .t:hover {
+  color: var(--cyan-bright);
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: #1b2a3b;
+  color: var(--ink-dim);
+  border: 1px solid #2b415a;
+  white-space: nowrap;
+}
+
+.tag.kar {
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--cyan-bright);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.tag.sync {
+  background: rgba(34, 197, 94, 0.14);
+  color: var(--emerald-bright);
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.tag.txt {
+  background: rgba(245, 158, 11, 0.14);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.slot button {
+  min-height: 32px;
+  min-width: 34px;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.slot button.btn-del:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.55);
+  color: #fca5a5;
+}
+
+/* ====== LYRICS EDITOR & KARAOKE MONITOR ====== */
+#res {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+#res:empty {
+  display: none;
+}
+
+#res button {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  font-size: 12.5px;
+  font-family: var(--font-mono);
+  background: #0d1723;
+}
+
+#lyr {
+  background: linear-gradient(180deg, #070c12 0%, #0c141f 100%);
+  border: 1px solid var(--border-glow);
+  border-radius: 10px;
+  color: #fff;
+  min-height: 78px;
+  padding: 12px 14px;
+  text-align: center;
+  margin: 10px 0 8px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+}
+
+#lyr b {
+  color: var(--cyan-bright);
+  text-shadow: 0 0 8px rgba(103, 232, 249, 0.45);
+}
+
+#lyr i {
+  display: block;
+  color: var(--ink-muted);
+  font-style: normal;
+  font-size: 12.5px;
+}
+
+input[type=range] {
+  width: 100%;
+  accent-color: var(--emerald-bright);
+  cursor: pointer;
+  margin: 4px 0 12px;
+}
+
+/* ====== DOWNLOAD CTA ====== */
+#dl {
+  width: 100%;
+  font-size: 17px;
+  font-weight: 800;
+  min-height: 58px;
+  margin: 0 0 16px;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+  border: 1px solid #4ade80;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 26px rgba(22, 163, 74, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+#dl:hover:not(:disabled) {
+  background: linear-gradient(180deg, #34d399 0%, #16a34a 100%);
+  border-color: #86efac;
+}
+
+#dl:disabled {
+  background: #172331;
+  border-color: #27394d;
+  color: var(--ink-muted);
+  box-shadow: none;
+}
+
+/* ====== CONSOLE LOG & HELP ====== */
+#log {
+  background: #060a10;
+  border: 1px solid #1d2d40;
+  border-radius: var(--radius-sm);
+  color: #4ade80;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  padding: 10px 12px;
+  height: 124px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+details {
+  margin-top: 12px;
+  border-top: 1px solid #1f3147;
+  padding-top: 12px;
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--cyan-bright);
+  user-select: none;
+}
+
+details ol {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  color: var(--ink-dim);
+}
+
+details li {
+  margin: 5px 0;
+}
+
+.hid { display: none !important; }
+
+/* ====== IN-PAGE CONFIRM MODAL (SANDBOX-SAFE) ====== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 8, 14, 0.76);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 100;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border-glow);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow), var(--glow);
+}
+
+.modal-card h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: #fff;
+}
+
+.modal-card p {
+  margin: 0 0 18px;
+  color: var(--ink-dim);
+  font-size: 13.5px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-danger {
+  background: linear-gradient(180deg, #ef4444, #dc2626);
+  border-color: #f87171;
+  color: #fff;
+}
+
+@media (max-width: 780px) {
+  .hero-header {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+  .mc-preview-stage {
+    align-items: stretch;
+  }
+  .mc-preview-caption, .mc-win {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .slot { flex-wrap: wrap; }
+  .slot .t { flex-basis: 100%; }
+  .slot button:first-of-type { margin-left: auto; }
+}
+</style>
+</head>
+<body>
+<div class="w">
+
+  <!-- REDESIGNED TOP HEADER + LIVE IN-GAME HEADER PREVIEW -->
+  <header class="hero-header">
+    <div class="hero-info">
+      <div class="hero-badge"><span class="rune-dot">ᚱ</span> FROST-RUNE UI EDITION</div>
+      <h1>MUSIC PLAYER + <span>LIVE LYRICS</span></h1>
+      <p class="hero-sub">เครื่องมือสร้าง Minecraft Bedrock Add-on พร้อมหัวเมนูเพลงดีไซน์ใหม่ แถบเวลาเรืองแสง และเนื้อเพลงคาราโอเกะสด (Mobile / iPad / PC)</p>
+      <div class="theme-switch-wrap">
+        <span class="theme-switch-label">ดีไซน์หัวเมนูในเกม (.mcaddon):</span>
+        <div class="theme-pills" role="group" aria-label="เลือกธีมหน้าต่างในเกม">
+          <button type="button" class="theme-pill active" id="thRune">ᚱ Frost Rune (เข้ม-เรืองแสง)</button>
+          <button type="button" class="theme-pill" id="thClassic">Classic (กรอบดั้งเดิม)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mc-preview-stage" aria-label="ตัวอย่างแสดงผลส่วนหัวเมนูในเกม">
+      <div class="mc-preview-caption">
+        <span>พรีวิวส่วนหัวเมนูในเกม</span>
+        <span class="mc-preview-tag" id="pvBadge">ตัวอย่างแสดงผล</span>
+      </div>
+      <div class="mc-win rune" id="mcWin">
+        <div class="mc-win-bar">
+          <span class="mc-rune-glyph">ᚦ</span>
+          <span class="mc-win-title">Music Player</span>
+          <span class="mc-win-close">✕</span>
+        </div>
+        <div class="mc-win-body">
+          <div class="mc-card-head">
+            <div class="mc-song-title" id="pvTitle">Love Me Not</div>
+            <div class="mc-song-artist" id="pvArtist">ft. Rex Orange County</div>
+            <div class="mc-pbar-track">
+              <div class="mc-pbar-fill" id="pvFill" style="width:0%"></div>
+              <div class="mc-pbar-knob" id="pvKnob" style="left:0%"></div>
+            </div>
+            <div class="mc-status-line">
+              <span class="mc-st-playing" id="pvState">▶ Playing</span>
+              <span class="mc-st-time" id="pvCur">0:00</span>
+              <span class="mc-st-dur" id="pvDur">/ 3:08</span>
+            </div>
+          </div>
+          <div class="mc-mock-btns">
+            <div class="mc-mock-row">
+              <span class="mc-disc"></span>
+              <div class="mc-mock-btn" id="pvBtnMain">Pause</div>
+            </div>
+            <div class="mc-mock-row">
+              <span class="mc-disc gold"></span>
+              <div class="mc-mock-btn">Previous</div>
+            </div>
+            <div class="mc-mock-row">
+              <span class="mc-disc purple"></span>
+              <div class="mc-mock-btn">Next</div>
+            </div>
+            <div class="mc-mock-row">
+              <span class="mc-stop-x">✕</span>
+              <div class="mc-mock-btn">Stop</div>
+            </div>
+          </div>
+        </div>
+        <div class="mc-win-foot">
+          <span class="mc-rune-glyph">ᚱ</span>
+          <span class="mc-rune-glyph">ᚱ</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SONG PREPARATION PANEL -->
+  <section class="p">
+    <div class="p-head">
+      <h2>เครื่องมือเตรียมเพลง</h2>
+    </div>
+    <div class="row">
+      <label class="b btn-accent">+ เพิ่มเพลง (MP3 / Audio)<input id="fAdd" type="file" accept="audio/*,.mp3" multiple></label>
+      <label class="b">กู้คืนจาก .mcaddon<input id="fRes" type="file" accept=".mcaddon,.zip"></label>
+    </div>
+    <div class="row">
+      <label class="field-label">คุณภาพเสียง
+        <select id="rate">
+          <option value="16000">16 kHz (ไฟล์เล็ก)</option>
+          <option value="22050" selected>22 kHz (แนะนำ)</option>
+          <option value="32000">32 kHz (คมชัด/ไฟล์ใหญ่)</option>
+        </select>
+      </label>
+      <label class="field-label">เล่นต่อ/เลื่อนเวลา
+        <select id="parts">
+          <option value="1" selected>เปิด (ไฟล์ ×2)</option>
+          <option value="0">ปิด (ประหยัดพื้นที่)</option>
+        </select>
+      </label>
+      <label class="field-label">ช่วงเลื่อนเวลา (วินาที)
+        <select id="seg">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+        </select>
+      </label>
+    </div>
+    <div id="list"></div>
+  </section>
+
+  <!-- SONG & LYRICS EDITOR -->
+  <section class="p hid" id="ed">
+    <div class="p-head">
+      <h2>แก้ไขเพลง / เนื้อเพลง</h2>
+    </div>
+    <div class="row">
+      <label class="field-label">ชื่อเพลง<input id="eTitle" type="text" placeholder="ชื่อเพลง"></label>
+      <label class="field-label">ศิลปิน<input id="eArt" type="text" placeholder="ศิลปิน (เช่น ft. Rex Orange County)"></label>
+    </div>
+    <div class="row">
+      <button type="button" id="bFind" class="btn-accent">ค้นหา LRCLIB</button>
+      <label class="b">นำเข้า LRC/TXT<input id="fLrc" type="file" accept=".lrc,.txt,text/plain"></label>
+      <label class="b">เปลี่ยนไฟล์เสียง<input id="fRep" type="file" accept="audio/*,.mp3"></label>
+    </div>
+    <div id="res"></div>
+    <textarea id="eLrc" placeholder="[00:12.30]บรรทัดเนื้อเพลง&#10;หรือวางเนื้อเพลงแบบข้อความ แล้วใช้ ช่วยสร้างเวลา / แตะซิงก์"></textarea>
+    <div id="lyr">-</div>
+    <input id="pos" type="range" min="0" max="1000" value="0" aria-label="แถบเลื่อนเวลาตัวอย่างเพลง">
+    <div class="row">
+      <button type="button" id="bPlay" class="btn-accent">▶ ฟังตัวอย่าง</button>
+      <button type="button" id="bAuto">ช่วยสร้างเวลา</button>
+      <button type="button" id="bTap">แตะซิงก์</button>
+    </div>
+    <div class="row">
+      <button type="button" id="bE">เนื้อเร็วขึ้น 0.2s</button>
+      <button type="button" id="bL">เนื้อช้าลง 0.2s</button>
+      <button type="button" id="bClose">✓ เสร็จ</button>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD ADD-ON BUTTON -->
+  <button type="button" id="dl">⬇ ดาวน์โหลด Add-on (.mcaddon)</button>
+
+  <!-- LOG & GUIDE -->
+  <section class="p">
+    <div id="log" aria-live="polite"></div>
+    <details>
+      <summary>วิธีใช้ (สั้น)</summary>
+      <ol>
+        <li>กด "+ เพิ่มเพลง" หรือลากไฟล์ MP3 มาวาง (ตั้งชื่อไฟล์ "ศิลปิน - ชื่อเพลง") ระบบแปลงไฟล์และหาเนื้อเพลงจาก LRCLIB ให้อัตโนมัติ</li>
+        <li>เลือกดีไซน์หัวเมนูด้านบน (<strong>Frost Rune</strong> กรอบเข้มเรืองแสงพร้อมแถบปุ่มเขียวใหม่ หรือ <strong>Classic</strong>)</li>
+        <li>แตะชื่อเพลงเพื่อแก้ไข ฟังตัวอย่างแล้วดูไฮไลต์รวมถึงพรีวิวส่วนหัวด้านบน ถ้าเนื้อมาก่อน/หลังเสียง ใช้ปุ่ม "เนื้อเร็วขึ้น/ช้าลง" หรือใช้ "แตะซิงก์" (แตะ/Space ทุกครั้งที่บรรทัดใหม่เริ่ม)</li>
+        <li>กด "ดาวน์โหลด Add-on" แล้วเปิดไฟล์ .mcaddon ด้วย Minecraft (iPhone/iPad: Files → แชร์ → Minecraft)</li>
+        <li>ในโลก: เปิดใช้ทั้ง Behavior และ Resource Pack ใช้ไอเทม Music Player เพื่อเปิดเมนู (สำรอง: /scriptevent mp:open)</li>
+        <li>ถ้าเนื้อไม่ตรงเสียง: เมนู → Lyrics Sync (เนื้อขึ้นก่อนเสียง = เพิ่ม Delay)</li>
+        <li>งานถูกบันทึกในเบราว์เซอร์นี้อัตโนมัติ แต่ควรเก็บไฟล์ .mcaddon ล่าสุดไว้สำรองเสมอ (อัปเดตแพ็กได้โดยกด "กู้คืนจาก .mcaddon")</li>
+      </ol>
+    </details>
+  </section>
+</div>
+
+<!-- SANDBOX-SAFE CONFIRMATION MODAL -->
+<div class="modal-backdrop hid" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="cfTitle">
+  <div class="modal-card">
+    <h3 id="cfTitle">ยืนยันการทำรายการ</h3>
+    <p id="cfMsg"></p>
+    <div class="modal-actions">
+      <button type="button" id="cfNo">ยกเลิก</button>
+      <button type="button" id="cfYes" class="btn-danger">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<!-- MINECRAFT BEDROCK SCRIPT TEMPLATE -->
+<script type="text/plain" id="mainjs">
+import { world, system, ItemStack } from "@minecraft/server";
+import { ActionFormData, ModalFormData } from "@minecraft/server-ui";
+import { CATALOG } from "./catalog.js";
+
+const C = CATALOG, SEG = C.seg * 1000, BY = {}, REP = ["Off", "All", "One"], SIZES = [[24, 12], [28, 16], [34, 20]], SIZE_NAMES = ["Narrow", "Normal", "Wide"], MW = 24, MBAR = 20;
+const FT = C.theme === "rune" ? "§b§r§f" : "";
+let WIDTH = 28, BAR = 16;
+function applySize() { const i = SIZES[cfg.size] ? cfg.size : 1; [WIDTH, BAR] = SIZES[i]; }
+for (const s of C.songs) BY[s.id] = s;
+
+let ready = false, lib = [], cfg = { vol: 100, lyr: true, kar: true, rep: 1, cur: "", pos: 0, lat: 0, off: {}, known: [], nm: {}, mini: false, size: 1 };
+const LC = new Map();
+const st = { on: false, t0: 0, start: 0, q: 0, part: false, li: -1, txt: "", tick: 0 };
+const OPT = () => ({ fade: 0, loop: false, volume: Math.max(0.05, cfg.vol / 100) });
+const fmt = ms => { const s = Math.max(0, Math.floor(ms / 1000)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+const now = () => st.on ? Date.now() - st.start : (cfg.pos || 0);
+const list = () => lib.filter(id => BY[id]);
+const canSeek = s => C.parts && s && s.n > 1;
+
+const pbar = (el, d, n, on = true) => {
+  const tot = Math.max(2, n);
+  const k = Math.max(0, Math.min(tot - 1, Math.floor(el / Math.max(1, d) * tot)));
+  const knob = on ? "\uE202" : "\uE203";
+  return "§r§f" + "\uE200".repeat(k) + knob + "\uE201".repeat(Math.max(0, tot - 1 - k));
+};
+
+const JUNK = /\s*[\(\[][^\)\]]*(?:official|video|audio|lyric|visuali[sz]er|\bmv\b)[^\)\]]*[\)\]]/gi;
+function info(s) {
+  const t = s.t.replace(JUNK, "").trim() || s.t;
+  const m = t.match(/^(.*?)\s*[\(\[]\s*(?:feat\.?|ft\.?)\s+([^\)\]]+)[\)\]]\s*$/i);
+  return { name: m && m[1] ? m[1] : t, who: s.a || (m && m[1] ? "ft. " + m[2] : "") };
+}
+
+const chW = ch => MARK.test(ch) ? 0 : /[\u1100-\u115f\u2e80-\ua4cf\uac00-\ud7a3\uf900-\ufaff\uff00-\uffdf]/.test(ch) ? 1.7 : /[MWmw@]/.test(ch) ? 1.15 : 1;
+const vlen = t => { let n = 0; for (const ch of t) n += chW(ch); return n; };
+const take = (t, a, max) => { let k = a, n = 0; while (k < t.length && n + chW(t[k]) <= max) n += chW(t[k++]); return cut(t, Math.max(k, a + 1)); };
+function fit(t, max) {
+  if (vlen(t) <= max) return t;
+  let k = take(t, 0, max - 1); const sp = t.lastIndexOf(" ", k);
+  if (sp > k * 0.6) k = sp;
+  return t.slice(0, k).replace(/[\s,;:]+$/, "") + "..";
+}
+
+const SCR_HOLD = 40, SCR_STEP = 4, SCR_GAP = "   |   ", MQ = new Map();
+function marquee(t, max, tk) {
+  const W = max * 6;
+  if (pw(t) <= W) return t;
+  let m = MQ.get(t);
+  if (!m) {
+    if (MQ.size > 20) MQ.clear();
+    const base = t + SCR_GAP, starts = [];
+    for (let i = 0; i < base.length; i = cut(base, i + 1)) starts.push(i);
+    m = { loop: base + t, starts }; MQ.set(t, m);
+  }
+  const ph = tk % (SCR_HOLD + m.starts.length * SCR_STEP);
+  const a = ph < SCR_HOLD ? 0 : m.starts[Math.min(m.starts.length - 1, Math.floor((ph - SCR_HOLD) / SCR_STEP))];
+  let k = a, w = 0;
+  while (k < m.loop.length) { const c = chPx(m.loop[k]); if (w + c > W) break; w += c; k++; }
+  return m.loop.slice(a, k) + " ".repeat(Math.max(0, Math.round((W - w) / 5)));
+}
+
+function wrap(t, max) {
+  const out = []; let a = 0;
+  while (vlen(t.slice(a)) > max) {
+    const k = take(t, a, max);
+    const sp = t.lastIndexOf(" ", k), b = sp > a ? sp : k;
+    out.push([a, b]); a = b; while (t[a] === " ") a++;
+  }
+  if (a < t.length) out.push([a, t.length]);
+  if (out.length === 2) {
+    let best = out[0][1], score = Math.max(vlen(t.slice(0, best)), vlen(t.slice(out[1][0])));
+    for (let i = t.indexOf(" "); i > 0; i = t.indexOf(" ", i + 1)) {
+      const m = Math.max(vlen(t.slice(0, i)), vlen(t.slice(i + 1)));
+      if (m < score) { score = m; best = i; }
+    }
+    if (best !== out[0][1]) { out[0] = [0, best]; out[1] = [best + 1, t.length]; }
+  }
+  return out;
+}
+
+function rd(k, d) { try { const v = world.getDynamicProperty(k); return typeof v === "string" ? JSON.parse(v) : d; } catch { return d; } }
+function save() { try { world.setDynamicProperty("mp:lib", JSON.stringify(lib)); world.setDynamicProperty("mp:cfg", JSON.stringify(cfg)); } catch (e) { console.warn("[MP] save " + e); } }
+function init() {
+  if (ready) return; ready = true; lib = rd("mp:lib", []); Object.assign(cfg, rd("mp:cfg", {}));
+  if (!cfg.off || typeof cfg.off !== "object") cfg.off = {};
+  for (const s of C.songs) { cfg.nm[s.id] = s.t; if (!cfg.known.includes(s.id)) { cfg.known.push(s.id); if (!lib.includes(s.id)) lib.push(s.id); } }
+  save();
+}
+function bar(t) { for (const p of world.getAllPlayers()) { try { p.onScreenDisplay.setActionBar(t); } catch {} } }
+
+function playAt(id, ms) {
+  const s = BY[id]; if (!s) return;
+  const c = canSeek(s) ? Math.min(s.n - 1, Math.max(0, Math.floor(ms / SEG))) : 0;
+  try {
+    world.stopMusic();
+    if (c) { world.playMusic(`mp.${id}.${c}`, OPT()); st.q = c; if (c + 1 < s.n) { world.queueMusic(`mp.${id}.${c + 1}`, OPT()); st.q = c + 1; } }
+    else world.playMusic(`mp.${id}`, OPT());
+  } catch (e) { console.warn("[MP] play " + e); return; }
+  st.t0 = system.currentTick; st.part = c > 0; cfg.cur = id; cfg.pos = c * SEG; st.on = true; st.start = Date.now() - c * SEG; st.li = -1; st.txt = ""; save();
+}
+function pause() { if (!st.on) return; cfg.pos = now(); st.on = false; world.stopMusic(); bar(`\uE205 §6Paused §f${fmt(cfg.pos)}`); save(); }
+function stop() { st.on = false; world.stopMusic(); cfg.pos = 0; bar(" "); save(); }
+function resume() { const L = list(); if (!L.length) return; const id = L.includes(cfg.cur) ? cfg.cur : L[0]; playAt(id, id === cfg.cur ? cfg.pos : 0); }
+function step(d) { const L = list(); if (!L.length) return stop(); let i = L.indexOf(cfg.cur); i = i < 0 ? 0 : (i + d + L.length) % L.length; playAt(L[i], 0); }
+function prev() { if (now() > 3000 && BY[cfg.cur]) playAt(cfg.cur, 0); else step(-1); }
+function ended() { const L = list(), i = L.indexOf(cfg.cur); if (cfg.rep === 2) return playAt(cfg.cur, 0); if (cfg.rep === 0 && i >= L.length - 1) return stop(); step(1); }
+
+function layout(tx) {
+  const key = WIDTH + "|" + tx;
+  let v = LC.get(key);
+  if (!v) { if (LC.size > 200) LC.clear(); v = wrap(tx, WIDTH); LC.set(key, v); }
+  return v;
+}
+
+function draw(s, el) {
+  applySize();
+  const t = el - ((cfg.lat || 0) + (cfg.off[s.id] || 0)) * 100, L = s.l;
+  if (st.li >= L.length || (st.li >= 0 && L[st.li][0] > t)) st.li = -1;
+  while (st.li + 1 < L.length && L[st.li + 1][0] <= t) st.li++;
+  const cur = L[st.li], nx = L[st.li + 1];
+  let j = st.li + 1;
+  const sung = cur && cur[1] && cfg.kar ? sungLen(cur, nx ? nx[0] : s.d, t) : 0;
+  const paint = (tx, x, y) => {
+    if (!cfg.kar) return "§r§f" + tx.slice(x, y);
+    const m = Math.max(x, Math.min(y, sung));
+    return "§r§b" + tx.slice(x, m) + "§f" + tx.slice(m, y);
+  };
+  let rows;
+  if (cur && cur[1]) {
+    const all = layout(cur[1]);
+    let at = 0; if (all.length > 2) { const i = all.findIndex(r => sung < r[1]); at = Math.floor((i < 0 ? all.length - 1 : i) / 2) * 2; }
+    rows = all.slice(at, at + 2).map(([x, y]) => paint(cur[1], x, y));
+  } else {
+    let q = j; while (L[q] && !L[q][1]) q++;
+    const wait = L[q] ? L[q][0] - t : Infinity;
+    rows = [!L.length ? "§r§8(no lyrics)" : wait <= 3000 ? "§r§b" + "• ".repeat(Math.max(1, Math.ceil(wait / 1000))).trim() : "§r§7♪ ♪ ♪"];
+  }
+  while (rows.length < 2) rows.push("§r ");
+  while (L[j] && !L[j][1]) j++;
+  const h = info(s), who = h.who, full = who ? `${h.name} - ${who}` : h.name;
+  const head = pw(full) > (WIDTH - 2) * 6
+    ? "§r§b♪ §f" + marquee(full, WIDTH - 2, system.currentTick - st.t0)
+    : `§r§b♪ §f${h.name}${who ? " §8- §7" + who : ""}`;
+  const next = L[j] ? "§r§7" + fit(L[j][1], WIDTH - 4) : "§r ";
+  const time = `§r§f${fmt(el)} ${pbar(el, s.d, BAR, st.on)} §r§7${fmt(s.d)}`;
+  const txt = cfg.mini ? `${rows.join("\n")}\n${time}` : `${head}\n${rows.join("\n")}\n${next}\n${time}`;
+  if (txt !== st.txt) { st.txt = txt; bar(txt); }
+}
+
+let errs = 0;
+function onTick() {
+  if (!ready || !st.on) return;
+  const s = BY[cfg.cur]; if (!s) return stop();
+  const el = now(); if (el >= s.d + 300) return ended();
+  if (st.part) { const c = Math.floor(el / SEG); while (st.q <= c && st.q + 1 < s.n) { st.q++; try { world.queueMusic(`mp.${s.id}.${st.q}`, OPT()); } catch {} } }
+  cfg.pos = Math.min(el, s.d); if (++st.tick % 50 === 0) save();
+  if (cfg.lyr) draw(s, el);
+}
+system.runInterval(() => { try { onTick(); } catch (e) { if (errs++ < 5) console.warn("[MP] tick " + e); } }, 2);
+
+async function show(p, f) {
+  for (let i = 0; i < 30; i++) { const r = await f.show(p); if (r.cancelationReason !== "UserBusy") return r; await new Promise(z => system.runTimeout(z, 10)); }
+}
+
+// ---- Upgraded centred Frost-Rune header card ----
+const CW = 200;
+const chPx = (ch, bold) => {
+  if (MARK.test(ch)) return 0;
+  if (ch === "\uE200" || ch === "\uE201") return 6;
+  if (ch >= "\uE202" && ch <= "\uE205") return 7;
+  const n = ch === " " ? 5 : "!.,:;i|".includes(ch) ? 2 : "l'".includes(ch) ? 3 : "It[]".includes(ch) ? 4
+    : "fk<>(){}\"*".includes(ch) ? 5 : "@~".includes(ch) ? 7 : 6;
+  return bold && ch !== " " ? n + 1 : n;
+};
+const pw = (t, bold) => { let n = 0; for (const ch of t.replace(/§./g, "")) n += chPx(ch, bold); return n; };
+const ctr = (t, code = "", bold = false) => "§r" + " ".repeat(Math.max(0, Math.round((CW - pw(t, bold)) / 10))) + code + t;
+function fitPx(t, max, bold) {
+  if (pw(t, bold) <= max) return t;
+  let k = t.length; while (k > 1 && pw(t.slice(0, k) + "..", bold) > max) k--;
+  let r = t.slice(0, k); const sp = r.lastIndexOf(" "); if (sp > k * 0.6) r = r.slice(0, sp);
+  return r.replace(/[\s,;:]+$/, "") + "..";
+}
+function card(s, el) {
+  const h = info(s);
+  const state = st.on ? "\uE204 §aPlaying" : "\uE205 §6Paused";
+  return [
+    ctr(fitPx(h.name, CW - 8, true), "§b§l", true),
+    h.who ? ctr(fitPx(h.who, CW - 8), "§7") : null,
+    " ",
+    ctr(pbar(el, s.d, MBAR, st.on)),
+    ctr(`${state}  §f${fmt(el)} §7/ ${fmt(s.d)}`)
+  ].filter(x => x !== null).join("\n");
+}
+
+async function menu(p) {
+  init(); const s = BY[cfg.cur], el = now();
+  const f = new ActionFormData().title(FT + "Music Player").body(s ? card(s, el)
+    : ctr("§b§lMusic Player", "", true) + "\n" + ctr(`§7${list().length} song(s) ready in world`));
+  const A = [], b = (t, i, fn) => { f.button(t, i); A.push(fn); };
+  b(st.on ? "Pause" : "Play / Resume", "textures/items/record_cat", () => st.on ? pause() : resume());
+  b("Previous", "textures/items/record_13", prev);
+  b("Next", "textures/items/record_mall", () => step(1));
+  b("Stop", "textures/ui/mp_stop", stop);
+  b("Song Library", "textures/blocks/jukebox_top", () => pick(p));
+  if (canSeek(s)) b("Seek", "textures/items/arrow", () => seek(p));
+  b("Lyrics Sync", "textures/items/book_enchanted", () => sync(p));
+  b("Volume & Settings", "textures/items/redstone_dust", () => settings(p));
+  b(cfg.lyr ? "Hide Lyrics" : "Show Lyrics", "textures/items/book_writable", () => { cfg.lyr = !cfg.lyr; st.txt = ""; if (!cfg.lyr) bar(" "); save(); });
+  b("World Library", "textures/items/book_normal", () => manage(p));
+  b("Backup / Restore / Check", "textures/items/paper", () => backup(p));
+  const r = await show(p, f); if (r && !r.canceled && A[r.selection]) await A[r.selection]();
+}
+
+async function pick(p) {
+  const L = list(); if (!L.length) return p.sendMessage("§c[Music] No songs in this world library.");
+  const f = new ActionFormData().title(FT + "Song Library");
+  L.forEach((id, i) => {
+    const s = BY[id], h = info(s), tail = ` ${fmt(s.d)}${s.l.length ? "" : " - no lyrics"}`;
+    f.button(`${id === cfg.cur ? "§b> " : ""}${fit(`${i + 1}. ${h.name}`, MW - 2)}\n§8${h.who ? fit(h.who, Math.max(6, MW - vlen(tail))) : ""}${tail}`);
+  });
+  const r = await show(p, f); if (r && !r.canceled) playAt(L[r.selection], 0);
+}
+
+async function seek(p) {
+  const s = BY[cfg.cur]; if (!canSeek(s)) return p.sendMessage("§c[Music] Seek not available for this song.");
+  const max = (s.n - 1) * C.seg;
+  const f = new ModalFormData().title("Seek").slider(`Position (sec), step ${C.seg}s`, 0, max, C.seg, Math.min(max, Math.floor(now() / SEG) * C.seg));
+  const r = await show(p, f); if (r && !r.canceled) playAt(s.id, r.formValues[0] * 1000);
+}
+
+async function sync(p) {
+  const s = BY[cfg.cur], f = new ModalFormData().title("Lyrics Sync");
+  if (s) f.slider(`Delay for "${s.t}" (x0.1 s)\n§7Raise if lyrics show BEFORE the voice`, -50, 50, 1, cfg.off[s.id] || 0);
+  f.slider("Delay for all songs (x0.1 s)", -30, 30, 1, Math.max(-30, Math.min(30, cfg.lat || 0)));
+  const r = await show(p, f); if (!r || r.canceled) return;
+  const v = r.formValues; if (s) { cfg.off[s.id] = v[0]; cfg.lat = v[1]; } else cfg.lat = v[0];
+  st.li = -1; st.txt = ""; save();
+}
+
+async function settings(p) {
+  const f = new ModalFormData().title("Settings")
+    .slider("Volume", 10, 100, 10, Math.min(100, Math.max(10, Math.round(cfg.vol / 10) * 10)))
+    .toggle("Show lyrics", cfg.lyr).toggle("Karaoke highlight (word by word)", cfg.kar).dropdown("Repeat", REP, cfg.rep).toggle("Compact HUD (lyrics + time only)", !!cfg.mini).dropdown("HUD width", SIZE_NAMES, SIZES[cfg.size] ? cfg.size : 1);
+  const r = await show(p, f); if (!r || r.canceled) return;
+  const [v, l, k, rp, mini, size] = r.formValues, old = cfg.vol; cfg.mini = mini; cfg.size = size; cfg.vol = v; cfg.lyr = l; cfg.kar = k; cfg.rep = rp; st.txt = ""; if (!l) bar(" "); save();
+  if (st.on && v !== old) {
+    const msg = () => p.sendMessage("§7[Music] New volume applies from the next song.");
+    try { p.dimension.runCommandAsync(`music volume ${(v / 100).toFixed(2)}`).catch(msg); } catch { msg(); }
+  }
+}
+
+async function manage(p) {
+  if (!C.songs.length) return p.sendMessage("§c[Music] The installed pack has no songs.");
+  const f = new ModalFormData().title("World Library");
+  for (const s of C.songs) f.toggle(`${s.t} §7- ${s.a}`, lib.includes(s.id));
+  const r = await show(p, f); if (!r || r.canceled) return;
+  const keep = lib.filter(id => !BY[id]);
+  lib = C.songs.filter((s, i) => r.formValues[i]).map(s => s.id).concat(keep);
+  if (st.on && !lib.includes(cfg.cur)) stop(); save();
+}
+
+async function backup(p) {
+  const miss = lib.filter(id => !BY[id]), bak = rd("mp:bak", null);
+  const f = new ActionFormData().title(FT + "Backup / Restore").body(
+    `Songs in this world: ${lib.length}\nInstalled in pack: ${C.songs.length}\n` +
+    (miss.length ? `§cMissing (${miss.length}): ${miss.map(id => cfg.nm[id] || id).join(", ")}§r\nImport the pack that contains them, or remove.` : "§aNo missing songs.") +
+    `\n§7Backup: ${bak ? new Date(bak.time).toISOString().slice(0, 16).replace("T", " ") + " UTC" : "none"}`);
+  const A = [], b = (t, fn) => { f.button(t); A.push(fn); };
+  b("Save backup", () => { world.setDynamicProperty("mp:bak", JSON.stringify({ time: Date.now(), lib, cfg: { vol: cfg.vol, lyr: cfg.lyr, kar: cfg.kar, rep: cfg.rep, mini: cfg.mini, size: cfg.size, cur: cfg.cur, pos: cfg.pos, lat: cfg.lat, off: cfg.off } })); p.sendMessage("§a[Music] Backup saved."); });
+  if (bak) b("Restore backup", () => { if (st.on) stop(); lib = bak.lib; Object.assign(cfg, bak.cfg); save(); p.sendMessage("§a[Music] Backup restored."); });
+  if (miss.length) b("Remove missing", () => { lib = lib.filter(id => BY[id]); save(); p.sendMessage("§a[Music] Removed missing entries."); });
+  const r = await show(p, f); if (r && !r.canceled && A[r.selection]) A[r.selection]();
+}
+
+const busyUI = new Set();
+const open = p => { if (busyUI.has(p.id)) return; busyUI.add(p.id); menu(p).catch(e => console.warn("[MP] " + e)).finally(() => busyUI.delete(p.id)); };
+world.afterEvents.itemUse.subscribe(e => { if (e.itemStack && e.itemStack.typeId === "mp:music_player") system.run(() => open(e.source)); });
+system.afterEvents.scriptEventReceive.subscribe(e => { if (e.id === "mp:open" && e.sourceEntity && e.sourceEntity.typeId === "minecraft:player") open(e.sourceEntity); });
+world.afterEvents.playerSpawn.subscribe(e => {
+  if (!e.initialSpawn) return; init(); const p = e.player;
+  system.runTimeout(() => {
+    try {
+      if (!p.hasTag("mp_got")) { p.getComponent("minecraft:inventory").container.addItem(new ItemStack("mp:music_player", 1)); p.addTag("mp_got"); }
+      p.sendMessage(`§b[Music] §f${list().length} song(s). Use the Music Player item or /scriptevent mp:open`);
+    } catch (err) { console.warn("[MP] " + err); }
+  }, 40);
+});
+system.run(init);
+</script>
+
+<!-- STUDIO APPLICATION LOGIC -->
+<script>
+const $ = id => document.getElementById(id);
+const T = new TextEncoder(), D = new TextDecoder();
+const RP = 'MusicPlayer_RP/', BP = 'MusicPlayer_BP/', LS = 'mcmp1';
+const esc = s => String(s).replace(/[&<>"]/g, c => '&#' + c.charCodeAt(0) + ';');
+const fmt = ms => { const s = Math.max(0, Math.floor(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const ts = ms => { const c = Math.max(0, Math.round(ms / 10)); return String(Math.floor(c / 6000)).padStart(2, '0') + ':' + ((c % 6000) / 100).toFixed(2).padStart(5, '0'); };
+const tm = (m, s) => Math.round((+m * 60 + parseFloat(String(s).replace(':', '.'))) * 1000);
+const log = m => { const l = $('log'); l.textContent += m + '\n'; l.scrollTop = 1e9; };
+const uid = () => {
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
+  const h = [...b].map(x => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
+};
+
+let P = null;
+try { P = JSON.parse(localStorage.getItem(LS)); } catch {}
+if (!P || !P.u) P = { u: [uid(), uid(), uid(), uid(), uid()], ver: 0, next: 1, theme: 'rune' };
+if (!P.theme) P.theme = 'rune';
+const saveP = () => { try { localStorage.setItem(LS, JSON.stringify(P)); } catch {} };
+saveP();
+if (P.parts != null) $('parts').value = P.parts;
+if (P.seg) $('seg').value = String(P.seg);
+
+let songs = [], sel = -1, lines = [], tap = null, pv = null, pvLast = 0, AC, lyrH = '';
+const cur = () => songs[sel];
+const dur = s => (s && s.pcm ? s.pcm.length / s.rate : 0);
+const ac = () => AC || (AC = new (window.AudioContext || window.webkitAudioContext)());
+
+/* ---------- Sandbox-Safe In-Page Confirm ---------- */
+function askConfirm(title, message, okLabel = 'ยืนยัน') {
+  return new Promise(resolve => {
+    $('cfTitle').textContent = title;
+    $('cfMsg').textContent = message;
+    $('cfYes').textContent = okLabel;
+    const modal = $('confirmModal');
+    modal.classList.remove('hid');
+    const done = val => {
+      modal.classList.add('hid');
+      $('cfYes').onclick = null;
+      $('cfNo').onclick = null;
+      resolve(val);
+    };
+    $('cfYes').onclick = () => done(true);
+    $('cfNo').onclick = () => done(false);
+  });
+}
+
+/* ---------- Live Header Theme & Preview Sync ---------- */
+function setTheme(th) {
+  P.theme = th === 'classic' ? 'classic' : 'rune';
+  saveP();
+  $('thRune').classList.toggle('active', P.theme === 'rune');
+  $('thClassic').classList.toggle('active', P.theme === 'classic');
+  $('mcWin').className = 'mc-win ' + P.theme;
+}
+$('thRune').onclick = () => setTheme('rune');
+$('thClassic').onclick = () => setTheme('classic');
+setTheme(P.theme);
+
+function syncHeaderPreview(elMs) {
+  const s = cur() || songs[0];
+  if (!s) {
+    $('pvBadge').textContent = 'ตัวอย่างแสดงผล';
+    $('pvTitle').textContent = 'Love Me Not';
+    $('pvArtist').textContent = 'ft. Rex Orange County';
+    $('pvFill').style.width = '0%';
+    $('pvKnob').style.left = '0%';
+    $('pvKnob').classList.remove('paused');
+    $('pvState').className = 'mc-st-playing';
+    $('pvState').textContent = '▶ Playing';
+    $('pvCur').textContent = '0:00';
+    $('pvDur').textContent = '/ 3:08';
+    $('pvBtnMain').textContent = 'Pause';
+    return;
+  }
+  $('pvBadge').textContent = cur() ? 'กำลังแก้ไขเพลงนี้' : 'เพลงแรกในแพ็ก';
+  $('pvTitle').textContent = s.title || 'Untitled';
+  $('pvArtist').textContent = s.artist || 'Unknown Artist';
+  const totalMs = Math.max(1, dur(s) * 1000);
+  const posMs = elMs != null ? elMs : (cur() === s ? pvPos() : 0);
+  const pct = Math.max(0, Math.min(100, (posMs / totalMs) * 100));
+  const isPlaying = !!(pv && pv.s === s);
+  $('pvFill').style.width = pct.toFixed(1) + '%';
+  $('pvKnob').style.left = pct.toFixed(1) + '%';
+  $('pvKnob').classList.toggle('paused', !isPlaying && posMs > 0);
+  $('pvState').className = isPlaying || posMs === 0 ? 'mc-st-playing' : 'mc-st-paused';
+  $('pvState').textContent = isPlaying || posMs === 0 ? '▶ Playing' : '❚❚ Paused';
+  $('pvCur').textContent = fmt(posMs);
+  $('pvDur').textContent = '/ ' + (s.pcm ? fmt(totalMs) : '--:--');
+  $('pvBtnMain').textContent = isPlaying ? 'Pause' : 'Play / Resume';
+}
+
+/* ---------- Karaoke (shared with add-on script) ---------- */
+const MARK = /[\u0300-\u036f\u0E31\u0E34-\u0E3A\u0E47-\u0E4E\u0EB1\u0EB4-\u0EBC\u0EC8-\u0ECD]/;
+function cut(tx, k) {
+  while (k < tx.length && (MARK.test(tx[k]) || (tx.charCodeAt(k) & 0xFC00) === 0xDC00)) k++;
+  return k;
+}
+function sungLen(L, nT, t) {
+  const tx = L[1], n = tx.length;
+  if (!n || t < L[0]) return 0;
+  if (L[2]) {
+    let k = -1;
+    for (let i = 0; i < L[2].length && L[2][i][0] <= t; i++) k = i;
+    return k < 0 ? 0 : L[2][k + 1] ? L[2][k + 1][1] : n;
+  }
+  const D = Math.max(400, Math.min(nT - L[0] - 150, n * 70 + 500)), p = Math.floor((t - L[0]) / D * n);
+  if (p >= n) return n;
+  if (p <= 0) return 0;
+  const sp = tx.indexOf(' ', p);
+  return sp >= 0 ? sp : tx.indexOf(' ') >= 0 ? n : cut(tx, p);
+}
+
+/* ---------- ZIP / UNZIP ---------- */
+const CRC = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(u) {
+  let c = -1;
+  for (let i = 0; i < u.length; i++) c = CRC[(c ^ u[i]) & 255] ^ (c >>> 8);
+  return (c ^ -1) >>> 0;
+}
+function zip(files) {
+  const parts = [], cd = [];
+  let off = 0;
+  for (const f of files) {
+    const n = T.encode(f.name), d = f.data, c = crc32(d), h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x800, true);
+    h.setUint16(12, 0x21, true); h.setUint32(14, c, true); h.setUint32(18, d.length, true);
+    h.setUint32(22, d.length, true); h.setUint16(26, n.length, true);
+    parts.push(h.buffer, n, d);
+    const e = new DataView(new ArrayBuffer(46));
+    e.setUint32(0, 0x02014b50, true); e.setUint16(4, 20, true); e.setUint16(6, 20, true);
+    e.setUint16(8, 0x800, true); e.setUint16(14, 0x21, true); e.setUint32(16, c, true);
+    e.setUint32(20, d.length, true); e.setUint32(24, d.length, true); e.setUint16(28, n.length, true);
+    e.setUint32(42, off, true);
+    cd.push(e.buffer, n);
+    off += 30 + n.length + d.length;
+  }
+  const size = cd.reduce((s, x) => s + x.byteLength, 0), z = new DataView(new ArrayBuffer(22));
+  z.setUint32(0, 0x06054b50, true); z.setUint16(8, files.length, true);
+  z.setUint16(10, files.length, true); z.setUint32(12, size, true); z.setUint32(16, off, true);
+  return new Blob([...parts, ...cd, z.buffer], { type: 'application/octet-stream' });
+}
+
+async function unzip(buf) {
+  const v = new DataView(buf), u = new Uint8Array(buf);
+  let e = buf.byteLength - 22;
+  while (e >= 0 && v.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw Error('ไม่ใช่ไฟล์ ZIP');
+  const n = v.getUint16(e + 10, true), out = {};
+  let p = v.getUint32(e + 16, true);
+  for (let i = 0; i < n; i++) {
+    const m = v.getUint16(p + 10, true), cs = v.getUint32(p + 20, true), nl = v.getUint16(p + 28, true),
+      xl = v.getUint16(p + 30, true), cl = v.getUint16(p + 32, true), lo = v.getUint32(p + 42, true);
+    const name = D.decode(u.subarray(p + 46, p + 46 + nl)),
+      ds = lo + 30 + v.getUint16(lo + 26, true) + v.getUint16(lo + 28, true);
+    let d = u.subarray(ds, ds + cs);
+    if (m === 8) d = new Uint8Array(await new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    else if (m !== 0) throw Error('ZIP ใช้การบีบอัดที่ไม่รองรับ');
+    out[name] = d;
+    p += 46 + nl + xl + cl;
+  }
+  return out;
+}
+
+/* ---------- Audio ---------- */
+async function decode(file, rate) {
+  const ab = await file.arrayBuffer();
+  const b = await new Promise((ok, no) => {
+    const q = ac().decodeAudioData(ab, ok, e => no(e || Error('ถอดรหัสไฟล์เสียงไม่ได้')));
+    if (q) q.catch(() => {});
+  });
+  const O = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  const oc = new O(1, Math.max(1, Math.ceil(b.duration * rate)), rate);
+  const src = oc.createBufferSource();
+  src.buffer = b; src.connect(oc.destination); src.start();
+  const f = (await oc.startRendering()).getChannelData(0), p = new Int16Array(f.length);
+  for (let i = 0; i < f.length; i++) {
+    const x = f[i];
+    p[i] = x <= -1 ? -32768 : x >= 1 ? 32767 : (x * 32767) | 0;
+  }
+  return p;
+}
+
+function wav(pcm, rate) {
+  const b = new ArrayBuffer(44 + pcm.length * 2), v = new DataView(b);
+  const w = (o, s) => { for (let i = 0; i < 4; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + pcm.length * 2, true); w(8, 'WAVE');
+  w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, 'data'); v.setUint32(40, pcm.length * 2, true);
+  new Int16Array(b, 44).set(pcm);
+  return new Uint8Array(b);
+}
+
+function readWav(u) {
+  const v = new DataView(u.buffer, u.byteOffset, u.byteLength);
+  let p = 12, rate = 22050;
+  while (p + 8 <= u.length) {
+    const id = D.decode(u.subarray(p, p + 4)), n = v.getUint32(p + 4, true);
+    if (id === 'fmt ') rate = v.getUint32(p + 12, true);
+    if (id === 'data') return { rate, pcm: new Int16Array(u.slice(p + 8, p + 8 + (n & ~1)).buffer) };
+    p += 8 + n + (n & 1);
+  }
+  throw Error('WAV เสีย');
+}
+
+/* ---------- Lyrics ---------- */
+function parseLRC(t) {
+  const o = [];
+  for (const ln of (t || '').replace(/§/g, '').split(/\r?\n/)) {
+    const tg = [...ln.matchAll(/\[(\d+):(\d+(?:[.:]\d+)?)\]/g)];
+    if (!tg.length) continue;
+    const ps = ln.replace(/\[[^\]]*\]/g, '').split(/<(\d+):(\d+(?:[.:]\d+)?)>/), w = [];
+    let tx = ps[0];
+    for (let i = 1; i < ps.length; i += 3) {
+      w.push([tm(ps[i], ps[i + 1]), tx.length]);
+      tx += ps[i + 2] || '';
+    }
+    const lead = tx.length - tx.trimStart().length;
+    tx = tx.trim();
+    for (const x of w) x[1] = Math.max(0, Math.min(tx.length, x[1] - lead));
+    for (const m of tg) {
+      const L = [tm(m[1], m[2]), tx];
+      if (w.length && tg.length === 1) L.push(w);
+      o.push(L);
+    }
+  }
+  return o.sort((a, b) => a[0] - b[0]);
+}
+
+const plain = t => (t || '').split(/\r?\n/).map(l => l.replace(/\[[^\]]*\]|<\d+:\d+(?:[.:]\d+)?>/g, '').trim()).filter(Boolean);
+
+async function lrcFind(s) {
+  const d = dur(s), N = x => (x || '').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+  const get = async q => {
+    const c = new AbortController(), tm_ = setTimeout(() => c.abort(), 12000);
+    try {
+      const r = await fetch('https://lrclib.net/api/search?' + new URLSearchParams(q), { signal: c.signal });
+      if (!r.ok) throw Error('HTTP ' + r.status);
+      return await r.json();
+    } finally { clearTimeout(tm_); }
+  };
+  let r = await get(s.artist ? { track_name: s.title, artist_name: s.artist } : { track_name: s.title });
+  if (!r.length) r = await get({ q: (s.artist + ' ' + s.title).trim() });
+  const nt = N(s.title), na = N(s.artist);
+  return r.map(x => {
+    const t = N(x.trackName), a = N(x.artistName);
+    x.dd = Math.abs((x.duration || 0) - d);
+    x.ok = (t === nt || t.includes(nt) || nt.includes(t)) && (!na || a.includes(na) || na.includes(a));
+    x.sc = x.dd + (x.syncedLyrics ? 0 : 4) + (x.ok ? 0 : 30);
+    return x;
+  }).sort((a, b) => a.sc - b.sc).slice(0, 8);
+}
+
+async function autoLyr(s) {
+  try {
+    const b = (await lrcFind(s))[0];
+    if (!songs.includes(s) || s.lrc) return;
+    if (b && b.ok && b.dd <= 3 && (b.syncedLyrics || b.plainLyrics)) {
+      s.lrc = b.syncedLyrics || b.plainLyrics;
+      log(`  ✓ LRCLIB: ${b.artistName} - ${b.trackName} (${b.syncedLyrics ? 'ซิงก์' : 'ไม่มีเวลา'}, ต่าง ${b.dd.toFixed(1)}s)`);
+      if (cur() === s) { $('eLrc').value = s.lrc; onLrc(); }
+      else render();
+    } else {
+      log('  – LRCLIB: ไม่พบเพลงที่ชื่อ ศิลปิน และความยาวตรงกัน (ค้นหาเองได้ในหน้าแก้ไข)');
+    }
+  } catch (e) {
+    log('  – LRCLIB ใช้ไม่ได้ (ออฟไลน์?): ' + e.message);
+  }
+}
+
+/* ---------- Preview ---------- */
+const pvPos = () => (pv ? (ac().currentTime - pv.t0) * 1000 + pv.off : pvLast);
+function pvStart(s, ms) {
+  pvStop();
+  if (!s || !s.pcm) return;
+  const c = ac(); c.resume();
+  if (!s.buf) {
+    s.buf = c.createBuffer(1, s.pcm.length, s.rate);
+    const ch = s.buf.getChannelData(0);
+    for (let i = 0; i < ch.length; i++) ch[i] = s.pcm[i] / 32768;
+  }
+  const src = c.createBufferSource();
+  src.buffer = s.buf; src.connect(c.destination); src.start(0, ms / 1000);
+  pv = { src, t0: c.currentTime, off: ms, s };
+  src.onended = () => {
+    if (pv && pv.src === src) {
+      pvLast = 0; pv = null;
+      $('bPlay').textContent = '▶ ฟังตัวอย่าง';
+      syncHeaderPreview(0);
+      if (tap) tapEnd();
+    }
+  };
+  $('bPlay').textContent = '■ หยุด';
+  requestAnimationFrame(loop);
+}
+
+function pvStop() {
+  if (!pv) return;
+  pvLast = pvPos();
+  const p = pv; pv = null;
+  try { p.src.stop(); } catch {}
+  $('bPlay').textContent = '▶ ฟังตัวอย่าง';
+  syncHeaderPreview(pvLast);
+}
+
+function loop() {
+  if (!pv) return;
+  const t = pvPos(), s = pv.s, dm = dur(s) * 1000;
+  $('pos').value = Math.round(t / dm * 1000);
+  syncHeaderPreview(t);
+  let h;
+  if (tap) {
+    h = `${fmt(t)} — แตะบรรทัด ${tap.k + 1}/${tap.lines.length}<br>${esc(tap.lines[tap.k] || '')}<i>${esc(tap.lines[tap.k + 1] || '')}</i>`;
+  } else {
+    let k = -1;
+    for (let i = 0; i < lines.length && lines[i][0] <= t; i++) k = i;
+    const L = lines[k];
+    let j = k + 1;
+    while (lines[j] && !lines[j][1]) j++;
+    const n = L && L[1] ? sungLen(L, lines[k + 1] ? lines[k + 1][0] : dm, t) : 0;
+    h = `${fmt(t)} / ${fmt(dm)}<br>${L && L[1] ? `<b>${esc(L[1].slice(0, n))}</b>${esc(L[1].slice(n))}` : '♪ …'}<i>${esc(lines[j] ? lines[j][1] : '')}</i>`;
+  }
+  if (h !== lyrH) { lyrH = h; $('lyr').innerHTML = h; }
+  requestAnimationFrame(loop);
+}
+
+function tapEnd() {
+  if (!tap) return;
+  const { lines: L, t } = tap;
+  tap = null; pvStop();
+  $('bTap').textContent = 'แตะซิงก์';
+  if (!t.length) return log('ยกเลิกแตะซิงก์ — เวลาเดิมไม่ถูกเปลี่ยน');
+  $('eLrc').value = L.map((l, i) => (i < t.length ? `[${ts(t[i])}]${l}` : l)).join('\n');
+  onLrc();
+  log(`แตะซิงก์ได้ ${t.length}/${L.length} บรรทัด`);
+}
+
+/* ---------- Autosave (IndexedDB) ---------- */
+let db = null, loaded = false, saveT = 0, saveWarned = false, chain = Promise.resolve();
+const stored = new Map();
+const idbOpen = () => new Promise((ok, no) => {
+  try {
+    const q = indexedDB.open('mcmp_db', 1);
+    q.onupgradeneeded = () => { q.result.createObjectStore('meta'); q.result.createObjectStore('pcm'); };
+    q.onsuccess = () => ok(q.result);
+    q.onerror = () => no(q.error);
+    q.onblocked = () => no(Error('blocked'));
+  } catch (e) { no(e); }
+});
+const idbGet = (st, k) => new Promise((ok, no) => {
+  const q = db.transaction(st).objectStore(st).get(k);
+  q.onsuccess = () => ok(q.result);
+  q.onerror = () => no(q.error);
+});
+
+function saveFail(e) {
+  if (!saveWarned) {
+    saveWarned = true;
+    log('⚠ บันทึกอัตโนมัติในเบราว์เซอร์จำกัด (' + (e && (e.name || e.message) || 'ไม่รองรับ') + ') — กดดาวน์โหลด .mcaddon เก็บไว้ก่อนปิดหน้า');
+  }
+}
+
+function flush() {
+  clearTimeout(saveT); saveT = 0;
+  chain = chain.then(() => new Promise(done => {
+    if (!db || !loaded) return done();
+    try {
+      const keep = songs.filter(s => s.pcm || !s.busy),
+        t = db.transaction(['meta', 'pcm'], 'readwrite'),
+        M = t.objectStore('meta'), A = t.objectStore('pcm'), next = new Map();
+      for (const s of keep) {
+        if (!s.pcm) continue;
+        if (stored.get(s.id) !== s.pcm) A.put(s.pcm, s.id);
+        next.set(s.id, s.pcm);
+      }
+      for (const id of stored.keys()) if (!next.has(id)) A.delete(id);
+      M.put(keep.map(s => ({ id: s.id, title: s.title, artist: s.artist, rate: s.rate, lrc: s.lrc })), 'songs');
+      t.oncomplete = () => { stored.clear(); for (const [k, v] of next) stored.set(k, v); saveWarned = false; done(); };
+      t.onabort = () => { saveFail(t.error); done(); };
+    } catch (e) { saveFail(e); done(); }
+  }));
+  return chain;
+}
+
+const persist = () => { if (!loaded) return; clearTimeout(saveT); saveT = setTimeout(flush, 500); };
+const lock = v => { for (const i of ['fAdd', 'fRes', 'dl']) $(i).disabled = v; };
+
+async function boot() {
+  lock(true);
+  try {
+    db = await Promise.race([idbOpen(), new Promise((_, no) => setTimeout(() => no(Error('timeout')), 4000))]);
+    for (const m of (await idbGet('meta', 'songs')) || []) {
+      const pcm = (await idbGet('pcm', m.id)) || null;
+      if (pcm) stored.set(m.id, pcm);
+      songs.push({ ...m, pcm, busy: false });
+      P.next = Math.max(P.next, (+m.id.slice(1) || 0) + 1);
+    }
+    loaded = true;
+  } catch (e) {
+    db = null; songs = []; loaded = true; saveFail(e);
+  }
+  lock(false); saveP(); render();
+  log(songs.length ? `โหลดงานที่บันทึกไว้ ${songs.length} เพลง` : 'พร้อมใช้งาน — เพิ่มเพลง กู้คืนจาก .mcaddon เดิม หรือกดดาวน์โหลดเพื่อสร้างแพ็กพร้อมหัวเมนู Frost Rune ใหม่');
+}
+
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && saveT) flush(); });
+window.addEventListener('beforeunload', e => {
+  if (songs.some(s => s.busy) || (songs.length && (!db || saveWarned))) { e.preventDefault(); e.returnValue = ''; }
+  else if (saveT) flush();
+});
+
+/* ---------- UI Rendering ---------- */
+function render() {
+  persist();
+  const L = $('list');
+  if (!songs.length) {
+    L.innerHTML = '<div class="empty-slot"><strong>ยังไม่มีเพลงในรายการ</strong>กดปุ่ม "+ เพิ่มเพลง (MP3 / Audio)" ด้านบน หรือลากไฟล์เสียงมาวางที่นี่</div>';
+    syncHeaderPreview();
+    return;
+  }
+  L.innerHTML = '';
+  songs.forEach((s, i) => {
+    const d = document.createElement('div'), pl = parseLRC(s.lrc), sy = pl.length, wd = pl.some(l => l[2]);
+    const lyrCls = wd ? 'kar' : sy ? 'sync' : s.lrc ? 'txt' : '';
+    const lyrTxt = wd ? 'KARAOKE' : sy ? 'SYNC' : s.lrc ? 'TXT' : 'ไม่มีเนื้อ';
+    d.className = 'slot' + (i === sel ? ' on' : '');
+    d.innerHTML = `<span class="t"></span><span class="tag">${s.busy ? 'แปลง…' : s.pcm ? fmt(dur(s) * 1000) : 'ไฟล์หาย'}</span><span class="tag ${lyrCls}">${lyrTxt}</span><button type="button" title="เลื่อนขึ้น">▲</button><button type="button" title="เลื่อนลง">▼</button><button type="button" class="btn-del" title="ลบเพลง">✕</button>`;
+    d.querySelector('.t').textContent = `${i + 1}. ${s.title}${s.artist ? ' - ' + s.artist : ''}`;
+    d.querySelector('.t').onclick = () => edit(i);
+    const [u, dn, x] = d.querySelectorAll('button');
+    u.onclick = () => mv(i, -1);
+    dn.onclick = () => mv(i, 1);
+    x.onclick = async () => {
+      if (!(await askConfirm('ลบเพลง', `ต้องการลบเพลง "${s.title}" ออกจากรายการหรือไม่?`, 'ลบเพลง'))) return;
+      if (sel === i) close(); else if (sel > i) sel--;
+      songs.splice(i, 1);
+      render();
+    };
+    L.append(d);
+  });
+  syncHeaderPreview();
+}
+
+function mv(i, d) {
+  const j = i + d;
+  if (j < 0 || j >= songs.length) return;
+  [songs[i], songs[j]] = [songs[j], songs[i]];
+  if (sel === i) sel = j; else if (sel === j) sel = i;
+  render();
+}
+
+function edit(i) {
+  pvStop(); tap = null;
+  $('bTap').textContent = 'แตะซิงก์';
+  sel = i;
+  const s = songs[i];
+  $('eTitle').value = s.title;
+  $('eArt').value = s.artist;
+  $('eLrc').value = s.lrc;
+  $('res').innerHTML = '';
+  pvLast = 0; lyrH = ''; $('pos').value = 0;
+  lines = parseLRC(s.lrc);
+  $('lyr').textContent = s.pcm ? 'พร้อม — กดฟังตัวอย่างเพื่อตรวจสอบซิงก์และดูพรีวิวหัวเมนู' : 'ไฟล์เสียงหาย — กด "เปลี่ยนไฟล์เสียง"';
+  $('ed').classList.remove('hid');
+  render();
+  $('ed').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function close() {
+  pvStop();
+  if (tap) tapEnd();
+  sel = -1;
+  $('ed').classList.add('hid');
+  render();
+}
+
+function onLrc() {
+  const s = cur();
+  if (!s) return;
+  s.lrc = $('eLrc').value;
+  lines = parseLRC(s.lrc);
+  lyrH = '';
+  render();
+}
+
+function shift(d) {
+  const s = cur();
+  if (!s) return;
+  const t = $('eLrc').value;
+  const r = t.replace(/([\[<])(\d+):(\d+(?:[.:]\d+)?)([\]>])/g, (_, a, m, x, b) => a + ts(Math.max(0, tm(m, x) + d)) + b);
+  if (r === t) return log('ยังไม่มีเวลาในเนื้อเพลง');
+  $('eLrc').value = r;
+  onLrc();
+  log(`เลื่อนเวลาเนื้อเพลง ${d > 0 ? '+' : ''}${d / 1000}s`);
+}
+
+async function addFiles(fileList) {
+  const fs = [...fileList].filter(f => f && (f.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(f.name)));
+  for (const f of fs) {
+    const nm = f.name.replace(/\.[^.]+$/, ''), i = nm.indexOf(' - ');
+    const s = {
+      id: 's' + P.next++,
+      title: (i > 0 ? nm.slice(i + 3) : nm).trim(),
+      artist: (i > 0 ? nm.slice(0, i) : '').trim(),
+      rate: +$('rate').value,
+      pcm: null,
+      lrc: '',
+      busy: true
+    };
+    saveP(); songs.push(s); render();
+    try {
+      log('แปลงเสียง: ' + f.name);
+      s.pcm = await decode(f, s.rate);
+      s.busy = false;
+      if (!songs.includes(s)) continue;
+      render();
+      if (cur() === s) edit(sel);
+      log(`  ✓ ${fmt(dur(s) * 1000)} → WAV ${s.rate} Hz mono`);
+      await autoLyr(s);
+    } catch (err) {
+      log('  ✖ ' + f.name + ': ' + ((err && err.message) || 'ถอดรหัสไม่ได้'));
+      const k = songs.indexOf(s);
+      if (k >= 0) { if (sel === k) close(); else if (sel > k) sel--; songs.splice(k, 1); }
+    }
+    render();
+  }
+}
+
+$('fAdd').onchange = async e => {
+  const fs = [...e.target.files];
+  e.target.value = '';
+  await addFiles(fs);
+};
+
+/* Drag & drop audio onto list */
+const listEl = $('list');
+listEl.addEventListener('dragover', e => { e.preventDefault(); listEl.classList.add('dragover'); });
+listEl.addEventListener('dragleave', () => listEl.classList.remove('dragover'));
+listEl.addEventListener('drop', async e => {
+  e.preventDefault();
+  listEl.classList.remove('dragover');
+  if (!$('fAdd').disabled && e.dataTransfer && e.dataTransfer.files.length) {
+    await addFiles(e.dataTransfer.files);
+  }
+});
+
+$('eTitle').oninput = e => { if (cur()) { cur().title = e.target.value; render(); } };
+$('eArt').oninput = e => { if (cur()) { cur().artist = e.target.value; render(); } };
+$('eLrc').oninput = onLrc;
+
+$('fLrc').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  const s = cur();
+  if (!f || !s) return;
+  const text = await f.text();
+  if (cur() !== s) return;
+  $('eLrc').value = text; onLrc();
+  log('นำเข้า ' + f.name + (lines.length ? ` (${lines.length} บรรทัดมีเวลา)` : ' (ไม่มีเวลา — ใช้ช่วยสร้างเวลา/แตะซิงก์)'));
+};
+
+$('fRep').onchange = async e => {
+  const f = e.target.files[0], s = cur();
+  e.target.value = '';
+  if (!f || !s) return;
+  pvStop(); s.busy = true; render();
+  try {
+    const rate = +$('rate').value, pcm = await decode(f, rate);
+    s.rate = rate; s.pcm = pcm; delete s.buf;
+    log('เปลี่ยนไฟล์เสียง: ' + s.title + ' ✓');
+  } catch { log('✖ ถอดรหัสไฟล์ไม่ได้'); }
+  s.busy = false; render();
+};
+
+$('bFind').onclick = async () => {
+  const s = cur();
+  if (!s) return;
+  $('res').innerHTML = '<div class="tag">กำลังค้นหา LRCLIB…</div>';
+  try {
+    const r = await lrcFind(s);
+    if (cur() !== s) return;
+    $('res').innerHTML = r.length ? '' : '<div class="tag">ไม่พบผลลัพธ์</div>';
+    for (const x of r) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = `${x.syncedLyrics ? '[SYNC]' : x.instrumental ? '[INST]' : '[TXT]'} ${x.artistName} - ${x.trackName} (${fmt((x.duration || 0) * 1000)}${x.dd > 3 ? ' ⚠ ความยาวไม่ตรง' : ''})`;
+      b.onclick = () => {
+        if (cur() !== s) return;
+        $('eLrc').value = x.syncedLyrics || x.plainLyrics || '';
+        onLrc(); $('res').innerHTML = '';
+        log('ใช้เนื้อเพลง LRCLIB #' + x.id);
+      };
+      $('res').append(b);
+    }
+  } catch (e) {
+    if (cur() === s) $('res').innerHTML = '';
+    log('LRCLIB ใช้ไม่ได้: ' + e.message);
+  }
+};
+
+$('bPlay').onclick = () => {
+  const s = cur();
+  if (!s || !s.pcm) return;
+  if (pv) { pvStop(); if (tap) tapEnd(); }
+  else pvStart(s, pvLast >= dur(s) * 1000 ? 0 : pvLast);
+};
+
+$('pos').oninput = e => {
+  const s = cur();
+  if (!s || !s.pcm || tap) return;
+  const ms = (e.target.value / 1000) * dur(s) * 1000;
+  if (!pv) { pvLast = ms; $('lyr').textContent = fmt(ms); syncHeaderPreview(ms); }
+};
+
+$('pos').onchange = e => {
+  const s = cur();
+  if (!s || !s.pcm || tap) return;
+  const ms = (e.target.value / 1000) * dur(s) * 1000;
+  if (pv) pvStart(s, ms);
+  else { pvLast = ms; $('lyr').textContent = fmt(ms); syncHeaderPreview(ms); }
+};
+
+$('bAuto').onclick = () => {
+  const s = cur(), L = plain($('eLrc').value);
+  if (!s || !s.pcm || !L.length) return log('ต้องมีไฟล์เสียงและเนื้อเพลงก่อน');
+  const fr = Math.floor(s.rate / 10), n = Math.floor(s.pcm.length / fr), en = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    let a = 0;
+    for (let j = i * fr; j < (i + 1) * fr; j++) a += Math.abs(s.pcm[j]);
+    en[i] = a / fr;
+  }
+  const th = [...en].sort((a, b) => a - b)[n >> 1] * 0.25;
+  let a = 0, b = n - 1;
+  while (a < n && en[a] <= th) a++;
+  while (b > a && en[b] <= th) b--;
+  const p = pvPos(), start = p > 500 ? p : a * 100, end = Math.max(start + 1000, (b + 1) * 100);
+  const W = L.reduce((x, l) => x + Math.max(6, l.length), 0);
+  let acc = 0;
+  $('eLrc').value = L.map(l => {
+    const t = start + (end - start) * 0.97 * acc / W;
+    acc += Math.max(6, l.length);
+    return `[${ts(t)}]${l}`;
+  }).join('\n');
+  onLrc();
+  log(`ช่วยสร้างเวลาแล้ว (เริ่มที่ ${fmt(start)}${p > 500 ? ' จากตำแหน่งที่หยุดไว้' : ' จากจุดที่เริ่มมีเสียง'}) — ฟังตัวอย่างเพื่อตรวจ หรือใช้แตะซิงก์`);
+};
+
+$('bTap').onclick = () => {
+  const s = cur();
+  if (!s || !s.pcm) return;
+  if (!tap) {
+    const L = plain($('eLrc').value);
+    if (!L.length) return log('ใส่เนื้อเพลง (ข้อความ) ก่อน');
+    tap = { lines: L, k: 0, t: [] };
+    pvStart(s, 0);
+    $('bTap').textContent = 'แตะ! (Space)';
+    return;
+  }
+  tap.t[tap.k++] = Math.max(0, pvPos() - 150);
+  if (tap.k >= tap.lines.length) tapEnd();
+};
+
+$('bE').onclick = () => shift(-200);
+$('bL').onclick = () => shift(200);
+$('bClose').onclick = close;
+document.addEventListener('keydown', e => {
+  if (tap && e.code === 'Space' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') {
+    e.preventDefault();
+    $('bTap').click();
+  }
+});
+
+/* ---------- Restore (.mcaddon) ---------- */
+$('fRes').onchange = async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  try {
+    log('กำลังอ่าน ' + f.name);
+    const z = await unzip(await f.arrayBuffer()), pk = Object.keys(z).find(k => k.endsWith('mp_project.json'));
+    if (!pk) throw Error('ไฟล์นี้ไม่ได้สร้างจากเครื่องมือนี้ (ไม่พบ mp_project.json)');
+    const J = JSON.parse(D.decode(z[pk])), base = pk.slice(0, pk.length - 15), miss = [], list = [];
+    if (!Array.isArray(J.songs) || !Array.isArray(J.u) || J.u.length !== 5 || !J.songs.every(m => m && /^s\d+$/.test(m.id)))
+      throw Error('ข้อมูลโปรเจกต์ในไฟล์ไม่สมบูรณ์');
+    for (const m of J.songs) {
+      const s = { id: m.id, title: m.title, artist: m.artist, rate: m.rate, lrc: m.lrc || '', pcm: null },
+        full = z[`${base}sounds/mp/${m.id}.wav`];
+      try {
+        if (full) { const w = readWav(full); s.rate = w.rate; s.pcm = w.pcm; }
+        else if (m.n) {
+          const ps = [];
+          for (let c = 0; c < m.n; c++) {
+            const d = z[`${base}sounds/mp/${m.id}_${c}.wav`];
+            if (!d) throw 0;
+            const w = readWav(d); s.rate = w.rate; ps.push(w.pcm);
+          }
+          const t = new Int16Array(ps.reduce((a, x) => a + x.length, 0));
+          let o = 0;
+          for (const x of ps) { t.set(x, o); o += x.length; }
+          s.pcm = t;
+        }
+      } catch { s.pcm = null; }
+      if (!s.pcm) miss.push(s.title);
+      list.push(s);
+    }
+    if (songs.some(s => s.busy)) throw Error('รอให้แปลงไฟล์เสร็จก่อน');
+    if (songs.length && !(await askConfirm('กู้คืนจาก .mcaddon', `แทนที่รายการปัจจุบัน (${songs.length} เพลง) ด้วยข้อมูลจากไฟล์นี้ (${list.length} เพลง) หรือไม่?`, 'แทนที่รายการ')))
+      return log('ยกเลิกการกู้คืน');
+    close();
+    songs = list;
+    P.u = J.u;
+    P.ver = Math.max(P.ver, J.ver || 0);
+    P.next = Math.max(P.next, J.next || 1, ...songs.map(s => +s.id.slice(1) + 1 || 1));
+    if (J.seg) $('seg').value = String(J.seg);
+    if (J.parts != null) $('parts').value = J.parts ? '1' : '0';
+    if (J.theme) setTheme(J.theme);
+    saveP(); render();
+    log(`กู้คืน ${songs.length} เพลง (ใช้ UUID เดิม อัปเดตแพ็กเดิมได้)` + (miss.length ? `\n⚠ ไฟล์เสียงหาย ${miss.length} เพลง: ${miss.join(', ')} → แตะชื่อเพลง > เปลี่ยนไฟล์เสียง` : ' — ไฟล์เสียงครบ'));
+  } catch (err) {
+    log('✖ กู้คืนไม่ได้: ' + err.message);
+  }
+};
+
+/* ---------- Upgraded Pixel Assets for Add-on ---------- */
+function canvasToBytes(c) {
+  return new Promise(z => c.toBlob(b => b.arrayBuffer().then(a => z(new Uint8Array(a))), 'image/png'));
+}
+
+/* Custom Unicode glyphs U+E200..U+E205: Recessed dark track, emerald fill, glowing playhead knob & badges */
+function glyphs() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const g = c.getContext('2d');
+  const r = (col, x, y, w, h) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+
+  // U+E200 (cell 0, x=0..9): Played emerald bar segment
+  r('#071318', 0, 5, 10, 6);
+  r('#86efac', 0, 6, 10, 1);
+  r('#22c55e', 0, 7, 10, 2);
+  r('#15803d', 0, 9, 10, 1);
+
+  // U+E201 (cell 1, x=16..25): Recessed dark slate track segment
+  r('#080d13', 16, 5, 10, 6);
+  r('#141e29', 16, 6, 10, 2);
+  r('#1f2d3d', 16, 8, 10, 2);
+  r('#324559', 16, 10, 10, 1);
+
+  // U+E202 (cell 2, x=32..43): Glowing emerald playhead knob
+  r('#062012', 33, 3, 10, 10);
+  r('#062012', 32, 4, 12, 8);
+  r('#22c55e', 34, 4, 8, 8);
+  r('#4ade80', 33, 5, 10, 6);
+  r('#dcfce7', 35, 5, 5, 3);
+
+  // U+E203 (cell 3, x=48..59): Glowing amber paused knob
+  r('#241604', 49, 3, 10, 10);
+  r('#241604', 48, 4, 12, 8);
+  r('#f59e0b', 50, 4, 8, 8);
+  r('#fbbf24', 49, 5, 10, 6);
+  r('#fef3c7', 51, 5, 5, 3);
+
+  // U+E204 (cell 4, x=64..75): Crisp green play triangle badge
+  r('#062414', 65, 3, 10, 10);
+  r('#22c55e', 66, 4, 2, 8);
+  r('#4ade80', 68, 5, 2, 6);
+  r('#86efac', 70, 6, 2, 4);
+  r('#dcfce7', 72, 7, 2, 2);
+
+  // U+E205 (cell 5, x=80..91): Crisp gold pause bars badge
+  r('#261805', 81, 3, 10, 10);
+  r('#fbbf24', 82, 4, 3, 8);
+  r('#fef3c7', 82, 4, 3, 2);
+  r('#fbbf24', 87, 4, 3, 8);
+  r('#fef3c7', 87, 4, 3, 2);
+
+  return canvasToBytes(c);
+}
+
+/* Frost-Rune 9-slice dialog texture (64x64, nineslice [10, 23, 10, 10]) */
+function dialogBg() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d');
+  const r = (col, x, y, w, h) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+
+  // Outer obsidian border & cyan rim
+  r('#090f16', 0, 0, 64, 64);
+  r('#38bdf8', 1, 1, 62, 62);
+  r('#1b2938', 2, 2, 60, 60);
+
+  // Top metallic header bar (y=2..21, total top slice = 23px matching vanilla)
+  r('#33475b', 2, 2, 60, 2);
+  r('#253646', 2, 4, 60, 15);
+  r('#182430', 2, 19, 60, 2);
+  r('#0b1219', 1, 21, 62, 2);
+
+  // Corner plates (top-left, top-right, bottom-left, bottom-right)
+  r('#2b3e52', 2, 2, 8, 19);
+  r('#2b3e52', 54, 2, 8, 19);
+  r('#243648', 2, 54, 8, 8);
+  r('#243648', 54, 54, 8, 8);
+
+  // Glowing ice-cyan runes in corners (top-left, bottom-left, bottom-right)
+  const rune = (ox, oy) => {
+    r('#0ea5e9', ox, oy, 1, 7);
+    r('#67e8f9', ox, oy + 1, 1, 5);
+    r('#67e8f9', ox + 1, oy + 1, 2, 1);
+    r('#67e8f9', ox + 2, oy + 2, 1, 1);
+    r('#67e8f9', ox + 1, oy + 3, 2, 1);
+    r('#38bdf8', ox + 2, oy + 5, 1, 2);
+  };
+  rune(4, 7);
+  rune(4, 55);
+  rune(57, 55);
+
+  // Inner recessed dark frost-slate body (x=9..54, y=23..54)
+  r('#091018', 8, 23, 48, 32);
+  r('rgba(13, 22, 33, 0.95)', 9, 24, 46, 30);
+  r('#26445f', 9, 24, 46, 1);
+
+  return canvasToBytes(c);
+}
+
+/* Crisp pixel-art ruby Stop icon (16x16) replacing oversized barrier block */
+function stopIcon() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 16;
+  const g = c.getContext('2d');
+  const r = (col, x, y, w, h) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+  for (let i = 0; i < 10; i++) {
+    r('#450a0a', 2 + i, 2 + i, 4, 4);
+    r('#450a0a', 10 - i, 2 + i, 4, 4);
+  }
+  for (let i = 0; i < 10; i++) {
+    r('#ef4444', 3 + i, 3 + i, 2, 2);
+    r('#ef4444', 11 - i, 3 + i, 2, 2);
+  }
+  r('#fca5a5', 3, 3, 2, 1);
+  r('#fca5a5', 11, 3, 2, 1);
+  return canvasToBytes(c);
+}
+
+/* Frost-Rune Music Player item & pack icon */
+function icon(sz) {
+  const c = document.createElement('canvas');
+  c.width = c.height = sz;
+  const g = c.getContext('2d'), k = sz / 16;
+  const r = (col, x, y, w, h) => { g.fillStyle = col; g.fillRect(x * k, y * k, w * k, h * k); };
+  r('#09111a', 0, 0, 16, 16);
+  r('#38bdf8', 1, 1, 14, 14);
+  r('#1c2d3f', 2, 2, 12, 12);
+  r('#2b4259', 2, 2, 12, 2);
+  r('#0d1722', 3, 4, 10, 9);
+  r('#67e8f9', 9, 5, 2, 6);
+  r('#67e8f9', 11, 5, 2, 2);
+  r('#67e8f9', 6, 9, 4, 3);
+  r('#4ade80', 4, 13, 5, 1);
+  r('#334155', 9, 13, 3, 1);
+  return canvasToBytes(c);
+}
+
+/* ---------- Build .mcaddon ---------- */
+async function build() {
+  const seg = +$('seg').value, parts = $('parts').value === '1', theme = P.theme || 'rune';
+  P.seg = seg; P.parts = $('parts').value; P.ver++; saveP();
+  const V = [1, 0, P.ver], [h1, m1, h2, m2, m3] = P.u;
+  const F = [], add = (n, x) => F.push({ name: n, data: typeof x === 'string' ? T.encode(x) : x }),
+    J = o => JSON.stringify(o, null, 1), ok = songs.filter(s => s.pcm),
+    cat = { seg, parts, theme, songs: [] }, sd = {}, cl = x => String(x || '').replace(/§/g, '');
+
+  for (const s of ok) {
+    add(`${RP}sounds/mp/${s.id}.wav`, wav(s.pcm, s.rate));
+    sd['mp.' + s.id] = { category: 'music', sounds: [{ name: 'sounds/mp/' + s.id, stream: true }] };
+    const per = seg * s.rate;
+    let n = parts ? Math.ceil(s.pcm.length / per) : 0;
+    if (n < 2) n = 0;
+    for (let c = 0; c < n; c++) {
+      add(`${RP}sounds/mp/${s.id}_${c}.wav`, wav(s.pcm.subarray(c * per, (c + 1) * per), s.rate));
+      sd[`mp.${s.id}.${c}`] = { category: 'music', sounds: [{ name: `sounds/mp/${s.id}_${c}`, stream: true }] };
+    }
+    s.n = n;
+    cat.songs.push({ id: s.id, t: cl(s.title) || 'Untitled', a: cl(s.artist), d: Math.round(dur(s) * 1000), n, l: parseLRC(s.lrc) });
+  }
+
+  const ic = await icon(16), pi = await icon(64), desc = `Music Player + Live Lyrics v${P.ver} (${ok.length} songs)`;
+  add(RP + 'manifest.json', J({
+    format_version: 2,
+    header: { name: 'Music Player RP', description: desc, uuid: h1, version: V, min_engine_version: [1, 21, 0] },
+    modules: [{ type: 'resources', uuid: m1, version: V }]
+  }));
+  add(RP + 'font/glyph_E2.png', await glyphs());
+  add(RP + 'textures/ui/mp_stop.png', await stopIcon());
+  add(RP + 'ui/hud_screen.json', J({
+    namespace: 'hud',
+    'hud_actionbar_text': { offset: [0, '50% - 92px'] },
+    'hud_actionbar_text/actionbar_message': { text_alignment: 'center' }
+  }));
+
+  if (theme === 'rune') {
+    add(RP + 'textures/ui/mp_dialog_bg.png', await dialogBg());
+    add(RP + 'textures/ui/mp_dialog_bg.json', J({ nineslice_size: [10, 23, 10, 10], base_size: [64, 64] }));
+    add(RP + 'ui/server_form.json', J({
+      namespace: 'server_form',
+      mp_dialog_bg: { type: 'image', texture: 'textures/ui/mp_dialog_bg', size: ['100%', '100%'] },
+      long_form: {
+        type: 'panel',
+        size: ['100%', '100%'],
+        controls: [
+          {
+            'mp_frost_form@common_dialogs.main_panel_no_buttons': {
+              '$dialog_background': 'server_form.mp_dialog_bg',
+              '$fill_alpha': 1.0,
+              '$title_panel': 'common_dialogs.standard_title_label',
+              '$title_size': ['100% - 14px', 10],
+              size: [225, 200],
+              '$text_name': '#title_text',
+              '$title_text_binding_type': 'none',
+              '$child_control': 'server_form.long_form_panel',
+              layer: 2,
+              bindings: [
+                { binding_name: '#title_text' },
+                { binding_type: 'view', source_property_name: "(not ((#title_text - '§b§r') = #title_text))", target_property_name: '#visible' }
+              ]
+            }
+          },
+          {
+            'long_form@common_dialogs.main_panel_no_buttons': {
+              '$title_panel': 'common_dialogs.standard_title_label',
+              '$title_size': ['100% - 14px', 10],
+              size: [225, 200],
+              '$text_name': '#title_text',
+              '$title_text_binding_type': 'none',
+              '$child_control': 'server_form.long_form_panel',
+              layer: 2,
+              bindings: [
+                { binding_name: '#title_text' },
+                { binding_type: 'view', source_property_name: "((#title_text - '§b§r') = #title_text)", target_property_name: '#visible' }
+              ]
+            }
+          }
+        ]
+      }
+    }));
+  }
+
+  add(RP + 'pack_icon.png', pi);
+  add(RP + 'textures/items/mp_music_player.png', ic);
+  add(RP + 'textures/item_texture.json', J({
+    resource_pack_name: 'mp',
+    texture_name: 'atlas.items',
+    texture_data: { mp_music_player: { textures: 'textures/items/mp_music_player' } }
+  }));
+  add(RP + 'sounds/sound_definitions.json', J({ format_version: '1.14.0', sound_definitions: sd }));
+  add(RP + 'mp_project.json', JSON.stringify({
+    app: 'mcmp', ver: P.ver, u: P.u, next: P.next, seg, parts, theme,
+    songs: songs.map(s => ({ id: s.id, title: s.title, artist: s.artist, rate: s.rate, n: s.pcm ? s.n : 0, full: !!s.pcm, lrc: s.lrc }))
+  }));
+
+  add(BP + 'manifest.json', J({
+    format_version: 2,
+    header: { name: 'Music Player BP', description: desc, uuid: h2, version: V, min_engine_version: [1, 21, 0] },
+    modules: [
+      { type: 'data', uuid: m2, version: V },
+      { type: 'script', language: 'javascript', uuid: m3, version: V, entry: 'scripts/main.js' }
+    ],
+    dependencies: [
+      { uuid: h1, version: V },
+      { module_name: '@minecraft/server', version: '1.11.0' },
+      { module_name: '@minecraft/server-ui', version: '1.2.0' }
+    ]
+  }));
+  add(BP + 'pack_icon.png', pi);
+  add(BP + 'items/music_player.json', J({
+    format_version: '1.20.50',
+    'minecraft:item': {
+      description: { identifier: 'mp:music_player', menu_category: { category: 'items' } },
+      components: { 'minecraft:icon': { texture: 'mp_music_player' }, 'minecraft:display_name': { value: 'Music Player' }, 'minecraft:max_stack_size': 1 }
+    }
+  }));
+  add(BP + 'scripts/catalog.js', 'export const CATALOG=' + JSON.stringify(cat) + ';\n');
+  add(BP + 'scripts/main.js', $('mainjs').textContent.trim() + '\nconst MARK=' + MARK + ';\n' + cut + '\n' + sungLen + '\n');
+  return { blob: zip(F), F, ok };
+}
+
+async function verify(blob, F) {
+  const z = await unzip(await blob.arrayBuffer());
+  if (Object.keys(z).length !== F.length) throw Error('จำนวนไฟล์ใน ZIP ไม่ตรง');
+  for (const f of F) {
+    const d = z[f.name], w = f.name.endsWith('.wav');
+    if (!d || d.length !== f.data.length || (!w && crc32(d) !== crc32(f.data))) throw Error('ไฟล์เสีย: ' + f.name);
+    if (w && D.decode(d.subarray(0, 4)) !== 'RIFF') throw Error('WAV เสีย: ' + f.name);
+    if (f.name.endsWith('.json')) JSON.parse(D.decode(d));
+    if (f.name.endsWith('.js')) {
+      try { new Function(D.decode(d).replace(/^\s*import[^;]+;/gm, '').replace(/\bexport\s+/g, '')); }
+      catch (e) { throw Error('Syntax ' + f.name + ': ' + e.message); }
+    }
+  }
+  const r = JSON.parse(D.decode(z[RP + 'manifest.json'])), b = JSON.parse(D.decode(z[BP + 'manifest.json']));
+  if (b.dependencies[0].uuid !== r.header.uuid || b.dependencies[0].version + '' !== r.header.version + '')
+    throw Error('BP→RP dependency ไม่ตรง');
+  const sd = JSON.parse(D.decode(z[RP + 'sounds/sound_definitions.json'])).sound_definitions;
+  for (const k in sd) if (!z[RP + sd[k].sounds[0].name + '.wav']) throw Error('ขาดไฟล์เสียง ' + k);
+}
+
+$('dl').onclick = async () => {
+  const b = $('dl');
+  if (songs.some(s => s.busy)) return log('รอให้แปลงไฟล์เสร็จก่อน');
+  b.disabled = true; b.textContent = 'กำลังสร้างและตรวจสอบแพ็ก…';
+  try {
+    pvStop();
+    const { blob, F, ok } = await build();
+    await verify(blob, F);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `MusicPlayer_v${P.ver}.mcaddon`;
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    const miss = songs.length - ok.length, nos = ok.filter(s => !parseLRC(s.lrc).length).length;
+    log(`✔ ${a.download} — ${(blob.size / 1048576).toFixed(1)} MB, ${F.length} ไฟล์ (ธีม ${P.theme === 'rune' ? 'Frost Rune' : 'Classic'}) | ตรวจ ZIP, CRC, JSON, UI, ไฟล์เสียง และ syntax ผ่าน`
+      + (miss ? `\n⚠ ข้าม ${miss} เพลงที่ไม่มีไฟล์เสียง` : '')
+      + (nos ? `\n⚠ ${nos} เพลงไม่มีเนื้อเพลงแบบมีเวลา` : ''));
+  } catch (err) {
+    log('✖ ' + err.message);
+  }
+  b.disabled = false; b.textContent = '⬇ ดาวน์โหลด Add-on (.mcaddon)';
+};
+
+boot();
+</script>
+</body>
+</html>
